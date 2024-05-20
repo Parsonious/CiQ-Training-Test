@@ -24,8 +24,8 @@ jobs:
       - name: Send Teams notification
         if: success()
         run: |
-          issues=${{ steps.fetch_issues.outputs.issues }}
-          payload=$(jq -n --arg issues "$issues" '{
+          issues="${{ steps.fetch_issues.outputs.issues }}"
+          payload=$(jq -n --argjson issues "$issues" '{
             "@type": "MessageCard",
             "@context": "https://schema.org/extensions",
             "summary": "Upcoming Due Dates",
@@ -35,4 +35,6 @@ jobs:
               "text": ($issues | map("Title: \(.title)\nAssignees: \(.assignees | join(\", \"))\nLabels: \(.labels | join(\", \"))") | join("\n\n"))
             }]
           }')
-          curl -H "Content-Type: application/json" -d "$payload" ${{ secrets.CIQ_TEST_TEAMS_IN_WEBHOOK }}
+          curl -H "Content-Type: application/json" -d "$payload" "${{ secrets.CIQ_TEST_TEAMS_IN_WEBHOOK }}"
+      
+                curl -H "Content-Type: application/json" -d "$payload" ${{ secrets.CIQ_TEST_TEAMS_IN_WEBHOOK }}
