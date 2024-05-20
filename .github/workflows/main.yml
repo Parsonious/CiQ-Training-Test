@@ -18,8 +18,10 @@ jobs:
           https://api.github.com/repos/Parsonious/CiQ-Training-Test/issues \
           | jq --argjson current_time "$(date +%s)" \
           '[.[] | select(.milestone.due_on != null and (.milestone.due_on | fromdateiso8601) == (($current_time + 86400) | tostring))] | .[] | {title: .title, body: .body, url: .html_url, assignees: [.assignees[].login], labels: [.labels[].name], milestone: .milestone.title}')
-
-
+       
+      - name: Echo
+        id: display fetch
+        run: echo $issues
 
       - name: Send Teams notification
         if: success()
