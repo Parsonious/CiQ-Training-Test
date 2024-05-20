@@ -17,8 +17,7 @@ jobs:
           issues=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           https://api.github.com/repos/Parsonious/CiQ-Training-Test/issues \
           | jq --argjson current_time "$(date +%s)" \
-          '[.[] | select(.milestone != null and .milestone.due_on != null and (.milestone.due_on | fromdateiso8601) == (($current_time + 86400) | tostring))] | .[] | {title: .title, body: .body, url: .html_url, assignees: [.assignees[].login], labels: [.labels[].name], milestone: .milestone.title}')
-
+          '[.[] | select(.milestone != null and .milestone.due_on != null and (.milestone.due_on | fromdateiso8601) == (($current_time + 86400) | tostring))] | .[] | {title: .title, body: .body, url: .html_url, assignees: [.assignees[].login], labels: [.labels[].name], milestone: (.milestone | if type == "object" then .title else "No milestone" end)}')
        
       - name: Echo
         id: display_issues
