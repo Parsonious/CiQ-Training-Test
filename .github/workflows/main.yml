@@ -29,7 +29,7 @@ jobs:
       - name: Send Teams notification
         if: success()
         run: |
-          issues="${{ steps.fetch_issues.outputs.issues }}"
+          issues="${{ steps.fetch_issues.outputs.* }}"
           echo $issues
           payload=$(jq -n --argjson issues "$issues" '{
             "@type": "MessageCard",
