@@ -20,8 +20,8 @@ jobs:
           '[.[] | select(.milestone.due_on != null and (.milestone.due_on | fromdateiso8601) == (($current_time + 86400) | tostring))] | .[] | {title: .title, body: .body, url: .html_url, assignees: [.assignees[].login], labels: [.labels[].name], milestone: .milestone.title}')
        
       - name: Echo
-        id: display fetch
-        run: echo $issues
+        id: display_issues
+        run: echo "${{ steps.fetch_issues.outputs.issues }}"
 
       - name: Send Teams notification
         if: success()
@@ -38,5 +38,3 @@ jobs:
             }]
           }')
           curl -H "Content-Type: application/json" -d "$payload" "${{ secrets.CIQ_TEST_TEAMS_IN_WEBHOOK }}"
-      
-                curl -H "Content-Type: application/json" -d "$payload" ${{ secrets.CIQ_TEST_TEAMS_IN_WEBHOOK }}
