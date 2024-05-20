@@ -1,0 +1,36 @@
+name: Notify Upcoming Due Dates
+
+on:
+  schedule:
+    - cron: '*/5 12-23 * * *' # Runs every 5 minutes from 12:00 to 23:59 UTC
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Fetch issues with due dates
+        id: fetch_issues
+        run: |
+          issues=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          https://api.github.com/repos/OWNER/REPO/issues \
+          | jq '[.[] | select(.milestone.due_on != null and (.milestone.due_on | fromdateiso8601) == ((now | todateiso8601) + 86400))]')
+          echo "::set-output name=issues::$issues"
+
+      - name: Send Teams notification
+        if: success()
+        run: |
+          issues=${{ steps.fetch_issues.outputs.issues }}
+          payload=$(jq -n --arg issues "$issues" '{
+            "@type": "MessageCard",
+            "@context": "https://schema.org/extensions",
+            "summary": "Upcoming Due Dates",
+            "themeColor": "0078D7",
+            "sections": [{
+              "activityTitle": "The following issues are due tomorrow:",
+              "text": $issues
+            }]
+          }')
+          curl -H "Content-Type: application/json" -d "$payload" ${{ secrets.CIQ_TEST_TEAMS_IN_WEBHOOK }}
