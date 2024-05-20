@@ -30,6 +30,7 @@ jobs:
         if: success()
         run: |
           issues="${{ steps.fetch_issues.outputs.issues }}"
+          echo $issues
           payload=$(jq -n --argjson issues "$issues" '{
             "@type": "MessageCard",
             "@context": "https://schema.org/extensions",
