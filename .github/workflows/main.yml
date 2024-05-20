@@ -15,7 +15,7 @@ jobs:
         id: fetch_issues
         run: |
           issues=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          https://api.github.com/repos/OWNER/REPO/issues \
+          https://api.github.com/repos/Parsonious/CiQ-Training-Test/issues \
           | jq '[.[] | select(.milestone.due_on != null and (.milestone.due_on | fromdateiso8601) == ((now | todateiso8601) + 86400))]')
           echo "::set-output name=issues::$issues"
 
