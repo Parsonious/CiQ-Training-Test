@@ -32,7 +32,7 @@ jobs:
             "themeColor": "0078D7",
             "sections": [{
               "activityTitle": "The following issues are due tomorrow:",
-              "text": $issues
+              "text": ($issues | map("Title: \(.title)\nAssignees: \(.assignees | join(\", \"))\nLabels: \(.labels | join(\", \"))") | join("\n\n"))
             }]
           }')
           curl -H "Content-Type: application/json" -d "$payload" ${{ secrets.CIQ_TEST_TEAMS_IN_WEBHOOK }}
