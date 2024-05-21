@@ -23,16 +23,16 @@ jobs:
           issues=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
            https://api.github.com/repos/Parsonious/CiQ-Training-Test/issues \
           | jq --arg current_time "$(date -u +%s)" \
-          '[.[] | select(.milestone != null and .milestone.due_on != null and ((.milestone.due_on | fromdateiso8601) <= ($current_time | tonumber + 86400) and (.milestone.due_on | fromdateiso8601) > ($current_time | tonumber)))]' | tr -d '\n')         # Export issues to environment variable
-          
+          '[.[] | select(.milestone != null and .milestone.due_on != null and ((.milestone.due_on | fromdateiso8601) <= ($current_time | tonumber + 86400) and (.milestone.due_on | fromdateiso8601) > ($current_time | tonumber)))]' | tr -d '\n' | sed 's/\"/\\\"/g')
+          # Export issues to environment variable
           echo "issues='$issues'" >> $GITHUB_ENV
-
+      
           # Debug the fetched issues
           echo "Fetched issues: $issues"
 
       - name: Debug fetched issues
         run: echo "${{ env.issues }}"
-
+      
       - name: Send Teams notification
         if: success() && env.issues != '[]'
         run: |
@@ -52,3 +52,4 @@ jobs:
             }]
           }')
           echo "$payload" | curl -H "Content-Type: application/json" -d @- "${{ secrets.CIQ_TEST_TEAMS_IN_WEBHOOK }}"
+
