@@ -24,7 +24,7 @@ jobs:
           https://api.github.com/repos/Parsonious/CiQ-Training-Test/issues \
           | jq --arg current_time "$(date -u +%s)" \
           '.[] | select(.milestone != null and .milestone.due_on != null and ((.milestone.due_on | fromdateiso8601) <= ($current_time | tonumber + 86400) and (.milestone.due_on | fromdateiso8601) > ($current_time | tonumber)))' \
-          | jq -sR 'split("\n") | map(gsub("\""; "\\\"")) | join("\\n")')
+          | jq -sR '. | gsub("\\\\"; "\\\\\\") | gsub("\n"; "\\n") | gsub("\r"; "\\r") | gsub("\t"; "\\t") | gsub("\""; "\\\"")')
         
           # Export issues to environment variable
           echo "issues='$issues'" >> $GITHUB_ENV
