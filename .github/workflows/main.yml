@@ -22,8 +22,8 @@ jobs:
         run: |
           issues=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           https://api.github.com/repos/Parsonious/CiQ-Training-Test/issues \
-          | jq --arg current_time "$(date -u +%s)" \
-          '[.[] | select(.milestone != null and .milestone.due_on != null and ((.milestone.due_on | fromdateiso8601) <= ($current_time | tonumber + 86400) and (.milestone.due_on | fromdateiso8601) > ($current_time | tonumber)))]' | tr -d '\n')
+          jq --arg current_time "$(date -u +%s)" \
+          '[.[] | select(.milestone != null and .milestone.due_on != null and ((.milestone.due_on | fromdateiso8601) <= ($current_time | tonumber + 86400) and (.milestone.due_on | fromdateiso8601) > ($current_time | tonumber)))]' | tr -d '\n'
 
           # Export issues to environment variable
           echo "issues='$issues'" >> $GITHUB_ENV
