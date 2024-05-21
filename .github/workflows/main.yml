@@ -45,7 +45,7 @@ jobs:
             "themeColor": "0078D7",
             "sections": [{
               "activityTitle": "The following issues are due tomorrow:",
-              "text": ($issues | map("Title: \(.title)\nAssignees: \(.assignees | join(\", \"))\nLabels: \(.labels | join(\", \"))\nURL: \(.html_url)") | join("\n\n"))
+              "text": $issues #($issues | map("Title: \(.title)\nAssignees: \(.assignees | join(\", \"))\nLabels: \(.labels | join(\", \"))\nURL: \(.html_url)") | join("\n\n"))
             }]
           }')
           echo "$payload" | curl -H "Content-Type: application/json" -d @- "${{ secrets.CIQ_TEST_TEAMS_IN_WEBHOOK }}"
