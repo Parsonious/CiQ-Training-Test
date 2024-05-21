@@ -24,15 +24,16 @@ jobs:
           https://api.github.com/repos/Parsonious/CiQ-Training-Test/issues \
           | jq --arg current_time "$(date -u +%s)" \
           '[.[] | select(.milestone != null and .milestone.due_on != null and ((.milestone.due_on | fromdateiso8601) <= ($current_time | tonumber + 86400) and (.milestone.due_on | fromdateiso8601) > ($current_time | tonumber)))]')
-          echo "::set-output name=issues::$issues"
+          echo "Fetched issues: $issues"
+          echo "issues=$issues" >> $GITHUB_ENV
 
-      - name: Echo fetched issues
-        run: echo "${{ steps.fetch_issues.outputs.issues }}"
+      - name: Debug fetched issues
+        run: echo "${{ env.issues }}"
 
       - name: Send Teams notification
-        if: success() && steps.fetch_issues.outputs.issues != '[]'
+        if: success() && env.issues != '[]'
         run: |
-          issues="${{ steps.fetch_issues.outputs.issues }}"
+          issues="${{ env.issues }}"
           if [ -z "$issues" ] || [ "$issues" = "[]" ]; then
             echo "No issues to notify."
             exit 0
@@ -47,5 +48,6 @@ jobs:
               "text": ($issues | map("Title: \(.title)\nAssignees: \(.assignees | join(\", \"))\nLabels: \(.labels | join(\", \"))\nURL: \(.html_url)") | join("\n\n"))
             }]
           }')
+          echo "$payload" | curl -H "Content-Type: application/json" -d @- "${{ secrets.CIQ_TEST_TEAMS_IN_WEBHOOK }}"
           echo "$payload" | curl -H "Content-Type: application/json" -d @- "${{ secrets.CIQ_TEST_TEAMS_IN_WEBHOOK }}"
           echo "$payload" | curl -H "Content-Type: application/json" -d @- "${{ secrets.CIQ_TEST_TEAMS_IN_WEBHOOK }}"
