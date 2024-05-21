@@ -22,22 +22,29 @@ jobs:
         run: |
           issues=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           https://api.github.com/repos/Parsonious/CiQ-Training-Test/issues \
-          | jq --argjson current_time "$(date +%s)" \
-          '[.[] | select(.milestone != null and .milestone.due_on != null and (.milestone.due_on | fromdateiso8601) == (($current_time + 86400) | tostring))] | .[] | {title: .title, body: .body, url: .html_url, assignees: [.assignees[].login], labels: [.labels[].name], milestone: (.milestone | if type == "object" then .title else "No milestone" end)}')
+          | jq --arg current_time "$(date -u +%s)" \
+          '[.[] | select(.milestone != null and .milestone.due_on != null and (.milestone.due_on | fromdateiso8601) <= ($current_time + 86400) and (.milestone.due_on | fromdateiso8601) > $current_time)]')
+          echo "::set-output name=issues::$issues"
 
+      - name: Echo fetched issues
+        run: echo "${{ steps.fetch_issues.outputs.issues }}"
 
       - name: Send Teams notification
         if: success() && steps.fetch_issues.outputs.issues != '[]'
         run: |
           issues="${{ steps.fetch_issues.outputs.issues }}"
-          payload=$(jq -n --argjson issues "$issues" '{
+          if [ -z "$issues" ] || [ "$issues" = "[]" ]; then
+            echo "No issues to notify."
+            exit 0
+          fi
+          payload=$(echo "$issues" | jq -n --argjson issues "$issues" '{
             "@type": "MessageCard",
             "@context": "https://schema.org/extensions",
             "summary": "Upcoming Due Dates",
             "themeColor": "0078D7",
             "sections": [{
               "activityTitle": "The following issues are due tomorrow:",
-              "text": ($issues | map("Title: \(.title)\nAssignees: \(.assignees | join(\", \"))\nLabels: \(.labels | join(\", \"))\nURL: \(.url)") | join("\n\n"))
+              "text": ($issues | map("Title: \(.title)\nAssignees: \(.assignees | join(\", \"))\nLabels: \(.labels | join(\", \"))\nURL: \(.html_url)") | join("\n\n"))
             }]
           }')
           echo "$payload" | curl -H "Content-Type: application/json" -d @- "${{ secrets.CIQ_TEST_TEAMS_IN_WEBHOOK }}"
